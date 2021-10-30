@@ -20,16 +20,36 @@ public class PlayerBehaviour : MonoBehaviour
 	// Коллайдер, проверка на столкновения
 	private Collider2D coll;
 
+	public Transform target;
+
+	float leftEdge, rightEdge;
+
+	public Animator animator;
+
 	private void Start()
 	{
 		// Получаем доступ к Rigidbody2D объекта Player
 		rigidBody = gameObject.GetComponent<Rigidbody2D>();
 		coll = gameObject.GetComponent<Collider2D>();
+
+		animator = GetComponent<Animator>();
 	}
 
-	private void Update()
+	private void FixedUpdate()
 	{
+		
+
 		updatePlayerPosition();
+
+		// Получаем границы камеры по ординате Х
+		leftEdge = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, 0)).x;
+		rightEdge = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, 0)).x;
+
+		// Телепортируем если за границами камеры
+		if (transform.position.x < leftEdge)
+			transform.position = new Vector3(rightEdge, transform.position.y, transform.position.z);
+		else if (transform.position.x > rightEdge)
+			transform.position = new Vector3(leftEdge, transform.position.y, transform.position.z);
 	}
 
 	// Обновляем местоположение игрока
@@ -58,6 +78,8 @@ public class PlayerBehaviour : MonoBehaviour
 
 		if (coll.IsTouchingLayers(ground))
 		{ //Тип прыгает, если стоит на земле
+			animator.SetFloat("Speed", Mathf.Abs(ground));
+
 			rigidBody.velocity = new Vector2(rigidBody.velocity.x, yVelocity);
 		}
 		if (moveInput > 0 && !isFacingRight)
@@ -67,20 +89,17 @@ public class PlayerBehaviour : MonoBehaviour
 		else if (moveInput < 0 && isFacingRight)
 			Flip();
 
-
-		
+	
 	}
+
 	private void Flip()
 	{
 		//меняем направление движения персонажа
 		isFacingRight = !isFacingRight;
-		//получаем размеры персонажа
-		Vector3 theScale = transform.localScale;
-		//зеркально отражаем персонажа по оси Х
-		theScale.x *= -1;
-		//задаем новый размер персонажа, равный старому, но зеркально отраженный
-		transform.localScale = theScale;
+		transform.Rotate(0f, 180f, 0f);
 	}
+
+	
 }
 
 //
